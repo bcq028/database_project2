@@ -1,9 +1,12 @@
-from database import Database
-
+from engine.database import Database
+from os import listdir,environ
+from os.path import join
 class REPL():
     def __init__(self):
         self.current_database = None
-        self.databases = {}
+        self.databases:dict[str,Database] = {}
+        for db in listdir(environ.get('root_dir')):
+            self.databases[db]=Database(join(environ.get('root_dir'),db))
         self.prompt = "db > "
         self.commands = {
             "CREATE DATABASE": self.create_database,
@@ -16,7 +19,7 @@ class REPL():
             "EXIT": self.exit
         }
 
-    def create_database(self, args):
+    def create_database(self, *args):
         db_name = args[0]
         if db_name in self.databases:
             print(f"Database {db_name} already exists.")
@@ -24,7 +27,7 @@ class REPL():
         self.databases[db_name] = Database(db_name)
         print(f"Database {db_name} created.")
 
-    def use_database(self, args):
+    def use_database(self, *args):
         db_name = args[0]
         if db_name not in self.databases:
             print(f"Database {db_name} does not exist.")
@@ -32,35 +35,34 @@ class REPL():
         self.current_database = self.databases[db_name]
         print(f"Using database {db_name}.")
 
-    def create_table(self, args):
+    def create_table(self, *args):
         if not self.current_database:
             print("No database selected.")
             return
         table_name = args[0]
-        columns = args[1:]
+        columns = args[1]
         self.current_database.create_table(table_name, columns)
         print(f"Table {table_name} created.")
 
-    def insert_into(self, args):
+    def insert_into(self, *args):
         if not self.current_database:
             print("No database selected.")
             return
         table_name = args[0]
-        values = args[1:]
+        values = args[1]
         self.current_database.tables[table_name].insert(values)
         print("Data inserted.")
 
-    def select(self, args):
+    def select(self, table_name):
         if not self.current_database:
             print("No database selected.")
             return
-        table_name = args[3]
         columns, rows = self.current_database.tables[table_name].select()
         print(columns)
         for row in rows:
             print(row)
 
-    def drop_table(self, args):
+    def drop_table(self, *args):
         if not self.current_database:
             print("No database selected.")
             return
@@ -68,7 +70,7 @@ class REPL():
         self.current_database.drop(table_name)
         print(f"Table {table_name} dropped.")
 
-    def drop_database(self, args):
+    def drop_database(self, *args):
         db_name = args[0]
         if db_name not in self.databases:
             print(f"Database {db_name} does not exist.")
@@ -76,7 +78,7 @@ class REPL():
         del self.databases[db_name]
         print(f"Database {db_name} dropped.")
 
-    def exit(self, args):
+    def exit(self):
         print("Goodbye!")
         exit()
 

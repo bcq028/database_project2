@@ -1,5 +1,5 @@
-from os.path import join, basename 
-
+from os.path import join, basename,isfile
+from os import listdir
 type_str_map = {
     str: "string",
     int: "int",
@@ -31,17 +31,17 @@ def write_csv_header(columns):
     types=""
     names=""
     for col in columns:
-        names=f'{names}\"{col["name"]}\"'
+        names=f'{names}\"{col["name"]}\",'
         col_type = type_str_map.get(col["type"], "")
         attrs = "".join(["?" if col["nullable"] else "","$" if col["primary key"] else ""])
         types=f'{types}{col_type}{attrs},'
     names=f'{names[:-1]}\n'
     types=f'{types[:-1]}\n'
-    return [names,types]
+    return [types,names]
 
-def get_columns(types:str,names:str)->List:
+def get_columns(types:str,names:str)->list:
         columns=[]
-        attribs=map(lambda c:c.replace("\"",''),parse_csv_line(names))
+        attribs=list(map(lambda c:c.replace("\"",''),parse_csv_line(names)))
         for idx,val in enumerate(parse_csv_line(types)):
             if val.startswith("string"):
                 col_type=str 
@@ -58,3 +58,8 @@ def get_columns(types:str,names:str)->List:
                 "primary key":True if val[-1:]=='$' else False
             })
         return columns
+
+def get_csv_files(path):
+     for fi in listdir(path):
+         if(isfile(join(path,fi)) and fi.endswith(".csv")):
+             yield file2table(fi)

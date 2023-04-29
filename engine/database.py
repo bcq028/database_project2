@@ -1,25 +1,23 @@
 
-from table import Table
+from engine.table import Table
 
-from os import listdir,remove 
+from os import remove,mkdir
 
-from os.path import isfile,join
+from os.path import isfile,join,isdir
 
-from utils import file2table,table2file
+from engine.utils import file2table,table2file,get_csv_files
 
 class Database():
     def __init__(self,database_dir:str):
         self.database_dir=database_dir
-        self.tables={}
+        if not isdir(database_dir):
+            mkdir(database_dir)
+        self.tables:dict[str,Table]={}
         self.sync()
-        
+
     def sync(self):
-        for table in self.get_files():
+        for table in get_csv_files(self.database_dir):
             self.tables[table]=Table(table,self.database_dir)
-    def get_files(self):
-        for fi in listdir(self.database_dir):
-            if(isfile(join(self.database_dir,fi)) and fi.endswith(".csv")):
-                yield file2table(fi)
 
 
     def commit(self):
@@ -32,4 +30,5 @@ class Database():
     def drop(self,table):
         if self.tables.pop(table,None) is None:
             raise NameError(f"Table{table} not exist")
-        remove(table2file(self.database_dir, table))
+        path=table2file(self.database_dir, table)
+        remove(path)
