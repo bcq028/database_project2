@@ -4,6 +4,8 @@ from os import environ
 
 from engine.utils import get_columns
 
+from engine.index import IndexType
+
 def main():
     environ['root_dir']='example'
     repl = REPL()
@@ -19,7 +21,9 @@ def main():
         print('5. Drop Table')
         print('6. Insert Data')
         print('7. Select Data')
-        print('8. Quit')
+        print('8. Create Index')
+        print('9. Drop Index')
+        print('10. Quit')
         choice = input('Enter your choice: ')
         if choice == '1':
             db_name = input('Enter database name: ')
@@ -47,6 +51,15 @@ def main():
             table_name = input('Enter table name: ')
             repl.select(table_name)
         elif choice == '8':
+            table_name = input('Enter table name: ')
+            column_name = input('Enter column name: ')
+            index_type = IndexType.BTree if input('Enter index type (Hash/BTree): ')=='BTree' else IndexType.Hash
+            repl.create_index(table_name, column_name, index_type)
+        elif choice == '9':
+            table_name = input('Enter table name: ')
+            column_name = input('Enter column name: ')
+            repl.drop_index(table_name, column_name)
+        elif choice == '10':
             repl.exit()
             break
         else:

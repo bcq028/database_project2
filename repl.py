@@ -1,9 +1,10 @@
 from engine.database import Database
 from os import listdir,environ
 from os.path import join
+from engine.index import IndexType
 class REPL():
     def __init__(self):
-        self.current_database = None
+        self.current_database:Database = None
         self.databases:dict[str,Database] = {}
         for db in listdir(environ.get('root_dir')):
             self.databases[db]=Database(join(environ.get('root_dir'),db))
@@ -57,10 +58,7 @@ class REPL():
         if not self.current_database:
             print("No database selected.")
             return
-        columns, rows = self.current_database.tables[table_name].select()
-        print(columns)
-        for row in rows:
-            print(row)
+        self.current_database.tables[table_name].select()
 
     def drop_table(self, *args):
         if not self.current_database:
@@ -77,6 +75,23 @@ class REPL():
             return
         del self.databases[db_name]
         print(f"Database {db_name} dropped.")
+
+    def create_index(self, table_name, column, index_type=IndexType.Hash):
+        table = self.current_database.tables[table_name]
+        table.create_index(column, index_type)
+        print(f"Index on column {column} created for table {table_name}")
+
+    def lookup(self, table_name, column, value):
+        table = self.database.get_table(table_name)
+        rows = table.lookup(column, value)
+        for row in rows:
+            print(row)
+        print(f"{len(rows)} rows found in table {table_name}")
+
+    def drop_index(self, table_name, column):
+        table = self.database.get_table(table_name)
+        table.drop_index(column)
+        print(f"Index on column {column} dropped for table {table_name}")
 
     def exit(self):
         print("Goodbye!")
